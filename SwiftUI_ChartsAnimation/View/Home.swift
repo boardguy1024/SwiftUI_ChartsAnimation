@@ -14,6 +14,7 @@ struct Home: View {
     @State var currentTab: String = "7 Days"
     @State var currentActiveItem: SiteView?
     @State var plotWidth: CGFloat = 0
+    @State var isLineGraph: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -48,6 +49,10 @@ struct Home: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(.white.shadow(.drop(radius: 10)))
                 )
+                
+                Toggle("Line Graph", isOn: $isLineGraph)
+                    .padding(.horizontal, 4)
+                    .padding(.top)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .padding()
@@ -62,11 +67,28 @@ struct Home: View {
     func AnimatedChart() -> some View {
         Chart {
             ForEach(sampleAnalytics) { item in
-                BarMark(
-                    x: .value("Hour", item.hour, unit: .hour),
-                    y: .value("Views", item.animate ? item.views : 0)
-                )
-                .foregroundStyle(Color.red.gradient)
+                
+                if isLineGraph {
+                    LineMark(
+                        x: .value("Hour", item.hour, unit: .hour),
+                        y: .value("Views", item.animate ? item.views : 0)
+                    )
+                    .foregroundStyle(Color.red.gradient)
+                    .interpolationMethod(.catmullRom)
+                    
+                    AreaMark(
+                        x: .value("Hour", item.hour, unit: .hour),
+                        y: .value("Views", item.animate ? item.views : 0)
+                    )
+                    .foregroundStyle(Color.red.gradient.opacity(0.1))
+                    .interpolationMethod(.catmullRom)
+                } else {
+                    BarMark(
+                        x: .value("Hour", item.hour, unit: .hour),
+                        y: .value("Views", item.animate ? item.views : 0)
+                    )
+                    .foregroundStyle(Color.red.gradient)
+                }
                 
                 if let currentActiveItem, currentActiveItem.id == item.id {
                     RuleMark(x: .value("Hour", currentActiveItem.hour))
